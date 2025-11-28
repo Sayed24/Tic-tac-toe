@@ -1,5 +1,4 @@
 const cells = document.querySelectorAll('[data-cell]');
-const board = document.querySelector('.board');
 const restartBtn = document.getElementById('restartBtn');
 const startBtn = document.getElementById('startBtn');
 const playerInput = document.getElementById('player');
@@ -26,7 +25,9 @@ const WINNING_COMBINATIONS = [
 ];
 
 // Start Game
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
     if(playerInput.value.trim() === '') {
         alert('Please enter your name!');
         return;
@@ -35,7 +36,7 @@ startBtn.addEventListener('click', () => {
     oTurn = false;
     resetBoard();
     currentPlayerText.innerText = `${playerName}'s Turn (X)`;
-});
+}
 
 // Restart Game
 restartBtn.addEventListener('click', () => {
@@ -48,13 +49,17 @@ function resetBoard() {
     cells.forEach(cell => {
         cell.classList.remove('x', 'o');
         cell.removeEventListener('click', handleClick);
+        cell.removeEventListener('touchstart', handleClick);
         cell.addEventListener('click', handleClick, { once: true });
+        cell.addEventListener('touchstart', handleClick, { once: true });
     });
 }
 
-// Handle Player Click
+// Handle Player Click / Touch
 function handleClick(e) {
+    e.preventDefault();
     const cell = e.target;
+    if(cell.classList.contains('x') || cell.classList.contains('o')) return;
     placeMark(cell, 'x');
     if(checkWin('x')) {
         endGame(false, 'x');
@@ -63,7 +68,7 @@ function handleClick(e) {
     } else {
         oTurn = true;
         currentPlayerText.innerText = "AI's Turn (O)";
-        setTimeout(aiMove, 500); // AI moves after 0.5s delay
+        setTimeout(aiMove, 500);
     }
 }
 
@@ -72,7 +77,6 @@ function aiMove() {
     const emptyCells = [...cells].filter(cell => !cell.classList.contains('x') && !cell.classList.contains('o'));
     if(emptyCells.length === 0) return;
 
-    // Random AI
     const move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
     placeMark(move, 'o');
 
@@ -120,5 +124,8 @@ function endGame(draw, winnerClass) {
             oScoreSpan.innerText = oScore;
         }
     }
-    cells.forEach(cell => cell.removeEventListener('click', handleClick));
+    cells.forEach(cell => {
+        cell.removeEventListener('click', handleClick);
+        cell.removeEventListener('touchstart', handleClick);
+    });
 }
